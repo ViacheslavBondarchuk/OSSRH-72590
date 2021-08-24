@@ -3,6 +3,7 @@ package io.github.viacheslavbondarchuk;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 
+import java.text.MessageFormat;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Phaser;
@@ -660,7 +661,7 @@ public class Monad<T, P> {
      * @return
      */
     public Monad<T, P> printPhase() {
-        if (log.isDebugEnabled())
+        if (log.isDebugEnabled() && Objects.nonNull(phaser))
             log.debug("Current phase of barrier: {}", phaser.getPhase());
         return this;
     }

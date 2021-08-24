@@ -8,7 +8,7 @@
     <version>0.1</version>
     <packaging>jar</packaging>
 
-    <name>${project.groupId}:${project.artifactId}</name>
+    <name>${project.groupId}:${project.artifactId}:${project.version}</name>
     <description>
         Monad provide functional handling
         over object with async ability
@@ -55,6 +55,7 @@
         <java.version>11</java.version>
         <lombok.version>1.18.20</lombok.version>
         <sl4j.version>1.0.13.5-jre14</sl4j.version>
+        <junit.version>5.7.2</junit.version>
     </properties>
 
     <dependencies>
@@ -71,6 +72,26 @@
             <version>${sl4j.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+
     </dependencies>
 
     <build>
