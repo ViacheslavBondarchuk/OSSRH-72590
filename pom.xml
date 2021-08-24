@@ -5,14 +5,21 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.viacheslavbondarchuk</groupId>
     <artifactId>monad</artifactId>
-    <version>0.1</version>
+    <version>0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>
         Monad provide functional handling
-        under object with async ability
+        over object with async ability
     </description>
+
+    <developers>
+        <developer>
+            <name>Viacheslav Bondarchuk</name>
+            <email>viacheslav.bondarchuk.k@gmail.com</email>
+        </developer>
+    </developers>
 
     <licenses>
         <license>
@@ -24,11 +31,27 @@
 
     <scm>
         <url>https://viacheslavbondarchuk.github.io/OSSRH-72590/</url>
+        <connection>scm:git:git://github.com/ViacheslavBondarchuk/OSSRH-72590.git</connection>
+        <developerConnection>scm:git:ssh://github.com/ViacheslavBondarchuk/OSSRH-72590.git</developerConnection>
     </scm>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>11</java.version>
         <lombok.version>1.18.20</lombok.version>
         <sl4j.version>1.0.13.5-jre14</sl4j.version>
     </properties>
@@ -41,14 +64,54 @@
             <scope>provided</scope>
         </dependency>
 
-
         <dependency>
             <groupId>com.guicedee.services</groupId>
             <artifactId>sl4j</artifactId>
             <version>${sl4j.version}</version>
             <scope>provided</scope>
         </dependency>
-
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.7</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

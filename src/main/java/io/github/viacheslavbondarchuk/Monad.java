@@ -26,18 +26,30 @@ public class Monad<T, P> {
 
     private Monad<T, P> previous;
 
+    /**
+     * @param monad
+     */
     private Monad(Monad<T, P> monad) {
         this.value = monad.value;
         this.phaser = monad.phaser;
         this.previous = monad.previous;
     }
 
+    /**
+     * @param value
+     * @param previous
+     */
     public Monad(T value, Monad<T, P> previous) {
         this.value = value;
         this.phaser = null;
         this.previous = previous;
     }
 
+    /**
+     * @param value
+     * @param phaser
+     * @param previous
+     */
     public Monad(T value, Phaser phaser, Monad<T, P> previous) {
         this.value = value;
         this.phaser = phaser;
@@ -49,19 +61,41 @@ public class Monad<T, P> {
         this.phaser = null;
     }
 
+    /**
+     * @param <T>
+     * @param <P>
+     * @return
+     */
     public static <T, P> Monad<T, P> empty() {
         return wrapOfNullable(null);
     }
 
+    /**
+     * @param <T>
+     * @param <P>
+     * @return
+     */
     public static <T, P> Monad<T, P> emptyAsync() {
         return wrapAsyncOfNullable(null);
     }
 
+    /**
+     * @param value
+     * @param <T>
+     * @param <P>
+     * @return
+     */
     public static <T, P> Monad<T, P> wrap(T value) {
         Objects.requireNonNull(value);
         return new Monad<>(value, null);
     }
 
+    /**
+     * @param value
+     * @param <T>
+     * @param <P>
+     * @return
+     */
     public static <T, P> Monad<T, P> wrapAsync(T value) {
         Objects.requireNonNull(value);
         Phaser phaser = new Phaser();
@@ -69,10 +103,22 @@ public class Monad<T, P> {
         return new Monad<>(value, phaser, null);
     }
 
+    /**
+     * @param value
+     * @param <T>
+     * @param <P>
+     * @return
+     */
     public static <T, P> Monad<T, P> wrapOfNullable(T value) {
         return Objects.isNull(value) ? new Monad<>() : new Monad<>(value, null);
     }
 
+    /**
+     * @param value
+     * @param <T>
+     * @param <P>
+     * @return
+     */
     public static <T, P> Monad<T, P> wrapAsyncOfNullable(T value) {
         Phaser phaser = new Phaser();
         phaser.register();
@@ -81,46 +127,90 @@ public class Monad<T, P> {
                 : new Monad<>(value, phaser, null);
     }
 
+    /**
+     * @param consumer
+     * @return
+     */
     public Monad<T, P> apply(Consumer<T> consumer) {
         if (Objects.nonNull(value))
             consumer.accept(value);
         return this;
     }
 
+    /**
+     * @param function
+     * @param atomicReference
+     * @param <R>
+     * @return
+     */
     public <R> Monad<T, P> applyAndStore(Function<T, R> function, AtomicReference<R> atomicReference) {
         if (Objects.nonNull(value))
             atomicReference.set(function.apply(value));
         return this;
     }
 
+    /**
+     * @param supplier
+     * @param atomicReference
+     * @param <R>
+     * @return
+     */
     public <R> Monad<T, P> applyBothAndStore(Supplier<R> supplier, AtomicReference<R> atomicReference) {
         atomicReference.set(supplier.get());
         return this;
     }
 
+    /**
+     * @param function
+     * @param consumer
+     * @param <R>
+     * @return
+     */
     public <R> Monad<T, P> applyAndConsume(Function<T, R> function, Consumer<R> consumer) {
         if (Objects.nonNull(value))
             consumer.accept(function.apply(value));
         return this;
     }
 
+    /**
+     * @param supplier
+     * @param consumer
+     * @param <R>
+     * @return
+     */
     public <R> Monad<T, P> applyAndConsume(Supplier<R> supplier, Consumer<R> consumer) {
         if (Objects.nonNull(value))
             consumer.accept(supplier.get());
         return this;
     }
 
+    /**
+     * @param supplier
+     * @param consumer
+     * @param <R>
+     * @return
+     */
     public <R> Monad<T, P> applyBothAndConsume(Supplier<R> supplier, Consumer<R> consumer) {
         consumer.accept(supplier.get());
         return this;
     }
 
+    /**
+     * @param operation
+     * @return
+     */
     public Monad<T, P> apply(Operation operation) {
         if (Objects.nonNull(value))
             operation.apply();
         return this;
     }
 
+    /**
+     * @param function
+     * @param atomicReference
+     * @param <R>
+     * @return
+     */
     public <R> Monad<T, P> applyAsyncAndStore(Function<T, R> function, AtomicReference<R> atomicReference) {
         if (Objects.nonNull(value)) {
             CompletableFuture.supplyAsync(() -> function.apply(value))
@@ -130,6 +220,12 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @param supplier
+     * @param atomicReference
+     * @param <R>
+     * @return
+     */
     public <R> Monad<T, P> applyBothAsyncAndStore(Supplier<R> supplier, AtomicReference<R> atomicReference) {
         CompletableFuture.supplyAsync(() -> supplier.get())
                 .handle(this::handleException)
@@ -137,6 +233,12 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @param function
+     * @param consumer
+     * @param <R>
+     * @return
+     */
     public <R> Monad<T, P> applyAsyncAndConsume(Function<T, R> function, Consumer<R> consumer) {
         if (Objects.nonNull(value)) {
             CompletableFuture.supplyAsync(() -> function.apply(value))
@@ -146,6 +248,12 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @param supplier
+     * @param consumer
+     * @param <R>
+     * @return
+     */
     public <R> Monad<T, P> applyBothAsyncAndConsume(Supplier<R> supplier, Consumer<R> consumer) {
         CompletableFuture.supplyAsync(supplier)
                 .handle(this::handleException)
@@ -153,6 +261,12 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @param supplier
+     * @param consumer
+     * @param <R>
+     * @return
+     */
     public <R> Monad<T, P> applyAsyncAndConsume(Supplier<R> supplier, Consumer<R> consumer) {
         if (Objects.nonNull(value)) {
             CompletableFuture.supplyAsync(supplier)
@@ -162,6 +276,10 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @param operation
+     * @return
+     */
     public Monad<T, P> applyAsync(Operation operation) {
         if (Objects.nonNull(value)) {
             CompletableFuture.runAsync(operation::apply)
@@ -170,12 +288,20 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @param operation
+     * @return
+     */
     public Monad<T, P> applyBothAsync(Operation operation) {
         CompletableFuture.runAsync(operation::apply)
                 .handle(this::handleException);
         return this;
     }
 
+    /**
+     * @param operation
+     * @return
+     */
     public Monad<T, P> applyAsyncAndWaitOther(Operation operation) {
         if (Objects.nonNull(value)) {
             CompletableFuture.runAsync(() -> {
@@ -187,6 +313,10 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @param operation
+     * @return
+     */
     public Monad<T, P> applyBothAsyncAndWaitOther(Operation operation) {
         CompletableFuture.runAsync(() -> {
                     phaser.register();
@@ -196,6 +326,10 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @param consumer
+     * @return
+     */
     public Monad<T, P> applyAsync(Consumer<T> consumer) {
         if (Objects.nonNull(value)) {
             CompletableFuture.runAsync(() -> consumer.accept(value))
@@ -204,6 +338,10 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @param consumer
+     * @return
+     */
     public Monad<T, P> applyAsyncAndWaitOther(Consumer<T> consumer) {
         if (Objects.nonNull(value)) {
             CompletableFuture.runAsync(() -> {
@@ -215,6 +353,12 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @param function
+     * @param atomicReference
+     * @param <R>
+     * @return
+     */
     public <R> Monad<T, P> applyAsyncWaitOtherAndStore(Function<T, R> function, AtomicReference<R> atomicReference) {
         if (Objects.nonNull(value)) {
             CompletableFuture.supplyAsync(() -> {
@@ -227,6 +371,12 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @param supplier
+     * @param atomicReference
+     * @param <R>
+     * @return
+     */
     public <R> Monad<T, P> applyBothAsyncWaitOtherAndStore(Supplier<R> supplier, AtomicReference<R> atomicReference) {
         CompletableFuture.supplyAsync(() -> {
                     phaser.register();
@@ -237,6 +387,12 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @param function
+     * @param consumer
+     * @param <R>
+     * @return
+     */
     public <R> Monad<T, P> applyAsyncWaitOtherAndConsume(Function<T, R> function, Consumer<R> consumer) {
         if (Objects.nonNull(value)) {
             CompletableFuture.supplyAsync(() -> {
@@ -249,6 +405,12 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @param supplier
+     * @param consumer
+     * @param <R>
+     * @return
+     */
     public <R> Monad<T, P> applyBothAsyncWaitOtherAndConsume(Supplier<R> supplier, Consumer<R> consumer) {
         CompletableFuture.supplyAsync(() -> {
                     phaser.register();
@@ -259,6 +421,12 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @param supplier
+     * @param consumer
+     * @param <R>
+     * @return
+     */
     public <R> Monad<T, P> applyAsyncWaitOtherAndConsume(Supplier<R> supplier, Consumer<R> consumer) {
         if (Objects.nonNull(value)) {
             CompletableFuture.supplyAsync(() -> {
@@ -271,24 +439,44 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @param supplier
+     * @param atomicReference
+     * @param <R>
+     * @return
+     */
     public <R> Monad<T, P> applyIfNullAndStore(Supplier<R> supplier, AtomicReference<R> atomicReference) {
         if (Objects.isNull(value))
             atomicReference.set(supplier.get());
         return this;
     }
 
+    /**
+     * @param supplier
+     * @param consumer
+     * @param <R>
+     * @return
+     */
     public <R> Monad<T, P> applyIfNullAndConsume(Supplier<R> supplier, Consumer<R> consumer) {
         if (Objects.isNull(value))
             consumer.accept(supplier.get());
         return this;
     }
 
+    /**
+     * @param operation
+     * @return
+     */
     public Monad<T, P> applyIfNull(Operation operation) {
         if (Objects.isNull(value))
             operation.apply();
         return this;
     }
 
+    /**
+     * @param operation
+     * @return
+     */
     public Monad<T, P> applyAsyncIfNull(Operation operation) {
         if (Objects.isNull(value)) {
             CompletableFuture.runAsync(operation::apply)
@@ -297,6 +485,12 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @param supplier
+     * @param atomicReference
+     * @param <R>
+     * @return
+     */
     public <R> Monad<T, P> applyAsyncIfNullAndStore(Supplier<R> supplier, AtomicReference<R> atomicReference) {
         if (Objects.isNull(value))
             CompletableFuture.supplyAsync(supplier)
@@ -305,6 +499,12 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @param supplier
+     * @param consumer
+     * @param <R>
+     * @return
+     */
     public <R> Monad<T, P> applyAsyncIfNullAndConsume(Supplier<R> supplier, Consumer<R> consumer) {
         if (Objects.isNull(value)) {
             CompletableFuture.supplyAsync(supplier)
@@ -314,7 +514,10 @@ public class Monad<T, P> {
         return this;
     }
 
-
+    /**
+     * @param consumer
+     * @return
+     */
     public Monad<T, P> applyAsyncIfNull(Consumer<T> consumer) {
         if (Objects.isNull(value)) {
             CompletableFuture.runAsync(() -> consumer.accept(value))
@@ -323,6 +526,10 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @param consumer
+     * @return
+     */
     public Monad<T, P> applyAsyncIfNullAndWaitOther(Consumer<T> consumer) {
         if (Objects.isNull(value)) {
             CompletableFuture.runAsync(() -> {
@@ -334,6 +541,10 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @param operation
+     * @return
+     */
     public Monad<T, P> applyAsyncIfNullAndWaitOther(Operation operation) {
         if (Objects.isNull(value)) {
             CompletableFuture.runAsync(() -> {
@@ -345,6 +556,12 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @param supplier
+     * @param atomicReference
+     * @param <R>
+     * @return
+     */
     public <R> Monad<T, P> applyAsyncIfNullWaitOtherAndStore(Supplier<R> supplier, AtomicReference<R> atomicReference) {
         if (Objects.isNull(value)) {
             CompletableFuture.supplyAsync(() -> {
@@ -357,6 +574,12 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @param supplier
+     * @param consumer
+     * @param <R>
+     * @return
+     */
     public <R> Monad<T, P> applyAsyncIfNullWaitOtherAndConsume(Supplier<R> supplier, Consumer<R> consumer) {
         if (Objects.isNull(value)) {
             CompletableFuture.supplyAsync(() -> {
@@ -369,19 +592,29 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @param function
+     * @param <M>
+     * @return
+     */
     public <M> Monad<M, T> mutable(Function<T, M> function) {
-        if(Objects.isNull(phaser) && Objects.isNull(value)) {
+        if (Objects.isNull(phaser) && Objects.isNull(value)) {
             return new Monad<M, T>(null, (Monad<M, T>) this);
         }
-        if(Objects.nonNull(phaser) && Objects.isNull(value)) {
+        if (Objects.nonNull(phaser) && Objects.isNull(value)) {
             return new Monad<M, T>(null, phaser, (Monad<M, T>) this);
         }
-        if(Objects.isNull(phaser) && Objects.nonNull(value)) {
+        if (Objects.isNull(phaser) && Objects.nonNull(value)) {
             return new Monad<M, T>(function.apply(value), (Monad<M, T>) this);
         }
         return new Monad<M, T>(function.apply(value), phaser, (Monad<M, T>) this);
     }
 
+    /**
+     * @param supplier
+     * @param <M>
+     * @return
+     */
     public <M> Monad<M, T> mutableIfNull(Supplier<M> supplier) {
         return Objects.isNull(phaser) ?
                 new Monad<M, T>(supplier.get(), (Monad<M, T>) this)
@@ -389,6 +622,11 @@ public class Monad<T, P> {
 
     }
 
+    /**
+     * @param result
+     * @param <R>
+     * @return
+     */
     public <R extends T> T orElse(R result) {
         if (Objects.isNull(value)) {
             return result;
@@ -396,6 +634,12 @@ public class Monad<T, P> {
         return value;
     }
 
+    /**
+     * @param exceptionSupplier
+     * @param <X>
+     * @return
+     * @throws X
+     */
     public <X extends Throwable> Monad<T, P> orElseThrow(Supplier<? extends X> exceptionSupplier) throws X {
         if (Objects.isNull(value))
             throw exceptionSupplier.get();
@@ -403,7 +647,7 @@ public class Monad<T, P> {
     }
 
     /**
-     * @apiNote Don`value use this method in the end of monad chain, use {@link #unwrap()} method
+     * Don`value use this method in the end of monad chain, use {@link #unwrap()} method
      */
     public Monad<T, P> await() {
         if (Objects.nonNull(phaser) && phaser.getRegisteredParties() > 0) {
@@ -412,6 +656,9 @@ public class Monad<T, P> {
         return this;
     }
 
+    /**
+     * @return
+     */
     public Monad<T, P> printPhase() {
         if (log.isDebugEnabled())
             log.debug("Current phase of barrier: {}", phaser.getPhase());
