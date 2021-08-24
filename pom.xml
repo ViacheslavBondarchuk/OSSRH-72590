@@ -10,7 +10,7 @@
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>
-        io.github.viacheslavbondarchuk.Monad provide functional handling
+        Monad provide functional handling
         under object with async ability
     </description>
 
@@ -23,7 +23,7 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/ViacheslavBondarchuk/monad</url>
+        <url>https://viacheslavbondarchuk.github.io/OSSRH-72590/</url>
     </scm>
 
     <properties>
