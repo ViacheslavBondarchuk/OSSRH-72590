@@ -32,13 +32,13 @@ public class Monad<T, P> {
         this.previous = Objects.nonNull(monad) ? monad.previous : null;
     }
 
-    public Monad(T value, Monad<T, P> previous) {
+    private Monad(T value, Monad<T, P> previous) {
         this.value = value;
         this.phaser = null;
         this.previous = previous;
     }
 
-    public Monad(T value, Phaser phaser, Monad<T, P> previous) {
+    private Monad(T value, Phaser phaser, Monad<T, P> previous) {
         this.value = value;
         this.phaser = phaser;
         this.previous = previous;
@@ -53,11 +53,6 @@ public class Monad<T, P> {
         return wrapOfNullable(null);
     }
 
-    /**
-     * @param <T>
-     * @param <P>
-     * @return
-     */
     public static <T, P> Monad<T, P> emptyAsync() {
         return wrapAsyncOfNullable(null);
     }
@@ -442,6 +437,13 @@ public class Monad<T, P> {
         Monad<P, T> monad = (Monad<P, T>) new Monad<>(previous);
         this.previous = this;
         return monad;
+    }
+
+    public <M> Monad<M, T> rollbackAndMutable(Function<P, M> function) {
+        if (Objects.isNull(previous) || Objects.nonNull(previous) && Objects.isNull(previous.value)) {
+            return new Monad<M, T>(null, phaser, (Monad<M, T>) this);
+        }
+        return new Monad<M, T>(function.apply((P) previous.value), phaser, (Monad<M, T>) this);
     }
 
     public T unwrap() {

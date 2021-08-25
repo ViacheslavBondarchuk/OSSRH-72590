@@ -118,4 +118,13 @@ public class MonadTest {
                 .unwrap();
     }
 
+    @Test
+    public void testRollbackAndMutable() {
+        Integer hashCode = Monad.wrapOfNullable(TEST_VALUE)
+                .mutable(String::chars)
+                .rollbackAndMutable(String::hashCode)
+                .unwrap();
+        Assertions.assertEquals(TEST_VALUE.hashCode(), hashCode);
+    }
+
 }
